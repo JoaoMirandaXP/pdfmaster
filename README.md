@@ -1,10 +1,11 @@
 # pdfmaster
 
-Template de formatação para provas de segunda fase do colégio Master
-Não está pronto para utilização em provas
+  Template de formatação para provas de segunda fase do colégio Master
+  
+  **Não** está pronto para utilização em provas
 ---
 ## Para usar esse programa você vai precisar
-------
+---
 
 - Ter o python3 instalado no seu computador (lembre de adicionar o python as VARIAVEIS DE AMBIENTE ou PATH)
 https://www.python.org/downloads/
