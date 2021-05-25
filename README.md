@@ -14,12 +14,16 @@ Template de formatação para provas de segunda fase do colégio Master
 
 - [X] Deixar que o usuário escolha a orientação das imagens no pdf
 
-- [ ] Identificar com precisão as bordas das Imagens
+- [X] Identificar com precisão as bordas das Imagens
 
-- [ ] Usar as bordas para encontrar o contorno
+- [x] Usar as bordas para encontrar o contorno
 
-- [ ] Transformação de perspectiva
+- [x] Transformação de perspectiva
 
-- [ ] Otimizar a qualidade de leitura
+- [x] Otimizar a qualidade de leitura
 
 - [ ] Fazer os requirements.txt
+
+- [ ] Salvar as imagens novas
+
+- [ ] Gerar pdf
