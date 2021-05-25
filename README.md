@@ -2,7 +2,9 @@
 Template de formatação para provas de segunda fase do colégio Master
 ---
 ## Utilização
-localização/das/imagens $ python masterpdf [nome_do_seu_arquivo].pdf
+localização/das/imagens $ python masterpdf [nome_do_seu_arquivo] [orientacao]
+
+*Atençao: a orientação deve ser escrita: **horizontal** ou **vertical** (a orientação padrão é vertical) *
 ---
 ## Todo
 
@@ -10,11 +12,11 @@ localização/das/imagens $ python masterpdf [nome_do_seu_arquivo].pdf
 
 - [X] Inserir a logomarca no canto superior esquerdo
 
-- [ ] Deixar que o usuário escolha a orientação das imagens no pdf
+- [X] Deixar que o usuário escolha a orientação das imagens no pdf
 
 - [ ] Identificar com precisão as bordas das Imagens
 
-- [ ] Aplicar a geometria projetica para tentar identicar o angulo da foto
+- [ ] Aplicar a geometria projetiva para tentar identicar o angulo da foto
 
 - [ ] Planificar a imagem
 

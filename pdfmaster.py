@@ -46,8 +46,23 @@ def insere_logo(imagem):
     logo_wdt, logo_hgt = logo.size
     imagem.paste(logo,(img_wdt-logo_wdt, 0), mask=logo)
     return imagem
+# Função para orientar as imagens corretamente
+def orientacao(imagem, direcao='vertical'):
+    w, h = imagem.size
+    if(direcao == 'vertical'):
+        if (w>h):
+            return imagem.rotate(-90, expand=True)
+        else:
+            return imagem
+    if(direcao == 'horizontal'):
+        if (h>w):
+            return imagem.rotate(90, expand=True)
+        else:
+            return imagem
+
 # Funçao geral de formatação, nela serão inseridas as demais funcionalidades
-def deixa_as_coisas_bonitinhas(imagem):
+def deixa_as_coisas_bonitinhas(imagem,direcao):
+    imagem = orientacao(imagem, direcao)
     imagem = insere_logo(imagem)
     return imagem
 
@@ -65,6 +80,7 @@ def to_pdf(imgs, filename):
 
 if __name__ == '__main__':
     arquivo = ''
+    direcao ='vertical'
     # recebendo nome esperado para o arquivo
     try:
         arquivo = sys.argv[1]
@@ -74,8 +90,13 @@ if __name__ == '__main__':
     except IndexError:
         print('O nome de arquivo não foi informado ou não é compatível')
         exit()
+    try:
+        direcao = sys.argv[2]
+    except IndexError:
+        print('Orientação padrão: {}'.format(direcao))
+
     imagens = get_image_objects(get_images_path())
     imagens_bonitinhas = []
     for imagem in imagens:
-        imagens_bonitinhas.append(deixa_as_coisas_bonitinhas(imagem))
+        imagens_bonitinhas.append(deixa_as_coisas_bonitinhas(imagem,direcao))
     to_pdf(imagens_bonitinhas,arquivo)
