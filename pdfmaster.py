@@ -1,8 +1,11 @@
 #!/usr/bin/python
 import sys
 import os
-import extensions
 from PIL import Image
+# Altere aqui as extensões aceitas
+IMAGE_EXTENSIONS = ['.jpg','.png']
+LOGO = os.path.join(os.path.dirname(__file__), 'logo-colegio-master.png')
+
 
 # Funcionalidade OS de listagem
 def get_arquivos():
@@ -12,7 +15,7 @@ def get_arquivos():
 def filtra(arquivos):
     filtrados = []
     for arquivo in arquivos:
-        if os.path.splitext(arquivo)[1].lower() in extensions.IMAGE_EXTENSIONS:
+        if os.path.splitext(arquivo)[1].lower() in IMAGE_EXTENSIONS:
             filtrados.append(arquivo)
     return filtrados
 #coloca os arquivos filtrados em uma ordem "coerente"
@@ -35,10 +38,27 @@ def get_image_objects(img_list):
     return objects
 #
 # ---- Aqui fica a lógica do programa em melhorar a imagem ao se tornar um pdf
-#
+
+# Função que vai inserir a logo no canto superior esquerdo da imagem
+def insere_logo(imagem):
+    logo = Image.open(LOGO)
+    img_wdt, img_hgt = imagem.size
+    logo_wdt, logo_hgt = logo.size
+    imagem.paste(logo,(img_wdt-logo_wdt, 0), mask=logo)
+    return imagem
+# Funçao geral de formatação, nela serão inseridas as demais funcionalidades
+def deixa_as_coisas_bonitinhas(imagem):
+    imagem = insere_logo(imagem)
+    return imagem
+
 # Converte todas os objetos de imagem recebidos em um só objeto
 def to_pdf(imgs, filename):
-    main_image = imgs[0]
+    main_image = ''
+    try:
+        main_image = imgs[0]
+    except IndexError:
+        print('Não tem imagens nesse diretório')
+        exit(0)
     imgs.pop(0)
     main_image.save(filename, save_all=True, append_images=imgs)
     return 'ok'
@@ -54,4 +74,8 @@ if __name__ == '__main__':
     except IndexError:
         print('O nome de arquivo não foi informado ou não é compatível')
         exit()
-    to_pdf(get_image_objects(get_images_path()), arquivo)
+    imagens = get_image_objects(get_images_path())
+    imagens_bonitinhas = []
+    for imagem in imagens:
+        imagens_bonitinhas.append(deixa_as_coisas_bonitinhas(imagem))
+    to_pdf(imagens_bonitinhas,arquivo)

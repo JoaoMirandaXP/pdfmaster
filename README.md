@@ -8,7 +8,7 @@ localização/das/imagens $ python masterpdf [nome_do_seu_arquivo].pdf
 
 - [X] Abstrair as funções e fazer com que elas tenham mais sentido juntas de maneira concisa
 
-- [ ] Inserir a logomarca no canto superior esquerdo
+- [X] Inserir a logomarca no canto superior esquerdo
 
 - [ ] Deixar que o usuário escolha a orientação das imagens no pdf
 
