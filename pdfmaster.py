@@ -10,11 +10,17 @@ from skimage.filters import threshold_local
 # Altere aqui as extensões aceitas
 IMAGE_EXTENSIONS = ['.jpg','.jpeg']
 LOGO = os.path.join(os.path.dirname(__file__), 'logo-colegio-master.png')
-
+# ----- Definições para o scan
+#   Diminua para aumentar a taxa de detecção
+EDGE_DETECTION = 35
+#   Quanto menor a proporção, menos ruido a imagem, cuidado ao usar
+PROPORCAO = 0.2
+#   Valor padrão para o "melhoramento" da imagem
+OFFSET = 10
 
 # Funcionalidade OS de listagem
-def get_arquivos():
-    arquivos = os.listdir()
+def get_arquivos(local=None):
+    arquivos = os.listdir(local)
     return arquivos
 # Para configurar os formatos de arquivos que são aceitos vá em extensions.py
 def filtra(arquivos):
@@ -29,11 +35,14 @@ def organiza(arquivos_filtrados):
 
 # Tratamento de imagem para melhorar o uso.
 # Retorna os caminhos para chegar as imagens
-def get_images_path():
-    return organiza(filtra(get_arquivos()))
+def get_images_path(local=None):
+    organizados = organiza(filtra(get_arquivos(local)))
+    if local != None:
+        organizados = [os.path.join(local, filename) for filename in organizados]
+    return organizados
 # Vai retornar uma lista de imagens do formato pillow
 def open_image_path(path):
-    return Image.open(path)
+    return Image.open(path).convert('RGB')
 # retorna os objetos de imagem
 def get_image_objects(img_list):
     objects = []
@@ -78,7 +87,7 @@ def canny_edge_detector(imagem):
     blur = cv2.GaussianBlur(gray, (5,5), 0) # ao dar um certo desfoque com GaussianBlur o ruido da imagem diminui
     #Detecção de quinas de Canny, o valor optimo segundo canny é 3
         # thresholding baixo identifica mais informação na imagem
-    canny_edge = cv2.Canny(blur,75 ,3*75)
+    canny_edge = cv2.Canny(blur,EDGE_DETECTION ,3*EDGE_DETECTION)
     return canny_edge
 
 # como vamos supor que todas as imagens são retangulares
@@ -106,7 +115,7 @@ def find_contours(canny):
 def scan(path):
     imagem = cv2.imread(path)
     original = imagem.copy()
-    ratio = 0.20
+    ratio = PROPORCAO
     # Redimensionar para utilizar menos recursos
     imagem = redimenciona(imagem, ratio)
 
@@ -119,27 +128,50 @@ def scan(path):
 
     #melhoramento da imagem... Não gosto dessa parte do código
     em_perspectiva_bw = cv2.cvtColor(em_perspectiva, cv2.COLOR_BGR2GRAY)
-    T = threshold_local(em_perspectiva_bw, 11, offset=10, method='gaussian')
+    T = threshold_local(em_perspectiva_bw, 11, offset=OFFSET, method='gaussian')
     em_perspectiva_bw = (em_perspectiva_bw > T).astype('uint8') * 255
 
-    cv2.imshow('Aspecto final', redimenciona(em_perspectiva_bw, ratio))
+    #cv2.imshow('Aspecto final', redimenciona(em_perspectiva_bw, ratio))
     #cv2.imshow('Perspectiva', em_perspectiva)
     #cv2.imshow('Canny Edge Detection', canny_edge)
     #cv2.imshow('Contorno', imagem)
 
-    cv2.waitKey(10000)
-    cv2.destroyAllWindows()
-# Função que vai identificar e redimencionar as páginas
+    #cv2.waitKey(10000)
+    #cv2.destroyAllWindows()
+    return em_perspectiva
 
-# Função que vai melhorar a visibilidade de leitura "Escanear"
-# Funçao geral de formatação, nela serão inseridas as demais funcionalidades
+def create_temp_path(name):
+    destino = os.path.join('.temp',name)
+    if not os.path.exists('.temp'):
+        os.mkdir('.temp')
+    return destino
+
+#salva a imagem escaneada
+def save_scan(local, imagem):
+    cv2.imwrite(local,imagem)
+
+def scan_dir_images():
+    images  = get_images_path()
+    for image in images:
+        scanned = scan(image)
+        destino = create_temp_path(image)
+        save_scan(destino, scanned)
+# -------------------------------
+def agrupar_pdf(nome_do_arquivo, folder=None):
+
+    imagens = get_image_objects(get_images_path(folder))
+    imagens_bonitinhas = []
+    for imagem in imagens:
+        imagens_bonitinhas.append(deixa_as_coisas_bonitinhas(imagem,direcao))
+    to_pdf(imagens_bonitinhas,nome_do_arquivo, folder)
+
 def deixa_as_coisas_bonitinhas(imagem,direcao):
     imagem = orientacao(imagem, direcao)
     imagem = insere_logo(imagem)
     return imagem
 
 # Converte todas os objetos de imagem recebidos em um só objeto
-def to_pdf(imgs, filename):
+def to_pdf(imgs, filename, dir):
     main_image = ''
     try:
         main_image = imgs[0]
@@ -147,12 +179,19 @@ def to_pdf(imgs, filename):
         print('Não tem imagens nesse diretório')
         exit(0)
     imgs.pop(0)
+
     main_image.save(filename, save_all=True, append_images=imgs)
     return 'ok'
+
+def clear_temp():
+    if os.path.exists('.temp'):
+        for x in os.listdir('.temp'):
+            os.remove(os.path.join('.temp', x))
 
 if __name__ == '__main__':
     arquivo = ''
     direcao ='vertical'
+    opcao = 'pdf_scan'
     # recebendo nome esperado para o arquivo
     try:
         arquivo = sys.argv[1]
@@ -166,15 +205,21 @@ if __name__ == '__main__':
         direcao = sys.argv[2]
     except IndexError:
         print('Orientação padrão: {}'.format(direcao))
+    try:
+        opcao = sys.argv[3]
+    except IndexError:
+        print('Modo padrão: {}'.format(opcao))
 
-    # "Scanner"For re
-    test = os.listdir()[0]
-    print(test)
-    scan(test)
-
-
-    #imagens = get_image_objects(get_images_path())
-    #imagens_bonitinhas = []
-    #for imagem in imagens:
-    #    imagens_bonitinhas.append(deixa_as_coisas_bonitinhas(imagem,direcao))
-    #to_pdf(imagens_bonitinhas,arquivo)
+    if opcao == '?':
+        print('Insira uma função')
+    if opcao == 'pdf':
+        agrupar_pdf(arquivo)
+        clear_temp()
+    if opcao == 'scan':
+        scan_dir_images()
+        agrupar_pdf(arquivo, '.temp')
+        clear_temp()
+    else:
+        print('Opção Desconhecida')
+        print('Saindo do programa....')
+        exit(0)

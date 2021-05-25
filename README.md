@@ -2,7 +2,7 @@
 Template de formatação para provas de segunda fase do colégio Master
 ---
 ## Utilização
-´´´localização/das/imagens $ python masterpdf [nome_do_seu_arquivo] [orientacao]´´´
+´´´localização/das/imagens $ python pdfmaster [nome_do_seu_arquivo] [orientacao]´´´
 
 * Atençao: a orientação deve ser escrita: **horizontal** ou **vertical** (a orientação padrão é vertical) *
 ---
@@ -22,8 +22,10 @@ Template de formatação para provas de segunda fase do colégio Master
 
 - [x] Otimizar a qualidade de leitura
 
-- [ ] Fazer os requirements.txt
+- [X] Fazer os requirements.txt
 
-- [ ] Salvar as imagens novas
+- [X] Salvar as imagens novas
 
-- [ ] Gerar pdf
+- [X] Gerar pdf
+
+- [ ] Aceitar **kwargs como por exemplo ´´´python pdfmaster [arquivo] [orientacao] kwargs´´´ com opções e ativar funções específicas
