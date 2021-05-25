@@ -3,8 +3,12 @@ import sys
 import os
 from PIL import Image
 import cv2
+#não gosto dessas importações
+from imutils.perspective import four_point_transform
+from skimage.filters import threshold_local
+
 # Altere aqui as extensões aceitas
-IMAGE_EXTENSIONS = ['.jpg','.png']
+IMAGE_EXTENSIONS = ['.jpg','.jpeg']
 LOGO = os.path.join(os.path.dirname(__file__), 'logo-colegio-master.png')
 
 
@@ -67,31 +71,61 @@ def redimenciona(imagem, escala):
     dimensoes = (width, height)
     redimensionada = cv2.resize(imagem,dimensoes,interpolation=cv2.INTER_AREA)
     return redimensionada
-def canny_edge(imagem):
+# filtra a imagem em pontos booleanos
+def canny_edge_detector(imagem):
     # escala de cinza, blur, find edges
     gray = cv2.cvtColor(imagem, cv2.COLOR_BGR2GRAY)
     blur = cv2.GaussianBlur(gray, (5,5), 0) # ao dar um certo desfoque com GaussianBlur o ruido da imagem diminui
     #Detecção de quinas de Canny, o valor optimo segundo canny é 3
         # thresholding baixo identifica mais informação na imagem
-    canny_edge = cv2.Canny(blur,30 ,3*30)
+    canny_edge = cv2.Canny(blur,75 ,3*75)
     return canny_edge
 
 # como vamos supor que todas as imagens são retangulares
 # o contorno será, o maior contorno com 4 pontos ligados diretamente
-#def find_contours():
+def find_contours(canny):
+    contorno = ''
+    contours = cv2.findContours(canny.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    # Imutils functions
+    if len(contours) == 2:
+        contours = contours[0]
+    contours = sorted(contours, key=cv2.contourArea,  reverse=True)
+    for x in contours:
+        perimetro = cv2.arcLength(x, True)
+        # serve para calcular a distância máxima entre dois pontos para a aproximação, 10% parece um bom começo
+        epsilon = 0.1*perimetro
+        # Aproximação de douglas-pecker
+        douglas_pecker = cv2.approxPolyDP(x, epsilon, True)
 
+        if len(douglas_pecker) == 4:
+            contorno = douglas_pecker
+            break
+    return contorno
 
 #escaneia
 def scan(path):
     imagem = cv2.imread(path)
     original = imagem.copy()
-
+    ratio = 0.20
     # Redimensionar para utilizar menos recursos
-    imagem = redimenciona(imagem, 0.10)
+    imagem = redimenciona(imagem, ratio)
 
-    canny_edge = canny_edge(imagem)
+    canny_edge = canny_edge_detector(imagem)
 
-    cv2.imshow('Canny Edge Detection', canny_edge)
+    contorno = find_contours(canny_edge)
+    cv2.drawContours(imagem,[contorno], -1, (255,0,0), 2)
+
+    em_perspectiva = four_point_transform(original, contorno.reshape(4,2)/ratio)
+
+    #melhoramento da imagem... Não gosto dessa parte do código
+    em_perspectiva_bw = cv2.cvtColor(em_perspectiva, cv2.COLOR_BGR2GRAY)
+    T = threshold_local(em_perspectiva_bw, 11, offset=10, method='gaussian')
+    em_perspectiva_bw = (em_perspectiva_bw > T).astype('uint8') * 255
+
+    cv2.imshow('Aspecto final', redimenciona(em_perspectiva_bw, ratio))
+    #cv2.imshow('Perspectiva', em_perspectiva)
+    #cv2.imshow('Canny Edge Detection', canny_edge)
+    #cv2.imshow('Contorno', imagem)
 
     cv2.waitKey(10000)
     cv2.destroyAllWindows()
